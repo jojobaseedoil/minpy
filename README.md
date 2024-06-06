@@ -1,4 +1,4 @@
-# MyLibrary
+# Minpy
 
 This is a Python library for multistage network structures, sliding window operations, and routing algorithms.
 
