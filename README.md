@@ -8,3 +8,9 @@ You can install the library using:
 
 ```sh
 pip install .
+```
+
+or do a pip install in your notebook:
+```
+!pip install git+https://github.com/jojobaseedoil/minpy.git
+```
