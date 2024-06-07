@@ -1,5 +1,6 @@
 from math import ceil, pow
 import numpy as np
+from numba import jit
 from .multistage import Multistage
 from .slider import Slider
 
@@ -21,6 +22,7 @@ class Omega(Multistage):
         self.__WINDOW      : Slider = Slider(size, extras, radix)
         self.__EXTRA_CODES : list   = [i for i in range(ceil(pow(radix, extras)))]
 
+    @jit
     def route(self, input: int, output: int) -> bool:
         """
         Routes a message from input to output.
@@ -32,31 +34,38 @@ class Omega(Multistage):
         Returns:
             bool: True if routing is successful, False otherwise.
         """
-        assert 0 <= input  < len(self), f"Index {input } out of range."
+        assert 0 <= input  < len(self), f"Index {input} out of range."
         assert 0 <= output < len(self), f"Index {output} out of range."
 
         if output in self._routed:
             return True
 
-        for extra in self.__EXTRA_CODES:
+        paths = [self.__WINDOW.concat(input, extra, output) for extra in self.__EXTRA_CODES]
 
-            found : bool = True
-            path  : int  = self.__WINDOW.concat(input, extra, output)
-
-            for col in range(self.stages):
-
-                row: int = self.__WINDOW.slide(path, col + 1)
-
-                if not self.__is_available(path, row, col):
-                    found = False
-                    break
-
-            if found:
+        for path in paths:
+            if self.__is_path_available(path):
                 self._routed[output] = path
                 self.__send_message(path)
                 return True
 
         return False
+    
+    @jit
+    def __is_path_available(self, path: int) -> bool:
+        """
+        Checks if a path is available for the given path.
+
+        Args:
+            path (int): Binary Path.
+
+        Returns:
+            bool: True if the path is available, False otherwise.
+        """
+        for col in range(self.stages):
+            row = self.__WINDOW.slide(path, col + 1)
+            if not self.__is_available(path, row, col):
+                return False
+        return True
 
     def unroute(self, output: int) -> bool:
         """
