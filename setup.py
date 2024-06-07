@@ -1,5 +1,6 @@
 from setuptools import setup, Extension, find_packages
 from setuptools.command.build_ext import build_ext
+from shutil import copyfile
 import os
 
 # Function to locate the CMakeLists.txt and run cmake and make
@@ -8,6 +9,7 @@ def build_extension():
     os.makedirs(build_temp, exist_ok=True)
     os.system(f'cmake -S src -B {build_temp}')
     os.system(f'cmake --build {build_temp}')
+    copyfile(os.path.join(build_temp, 'libminpy.so'), 'minpy/libminpy.so')
 
 class CMakeBuild(build_ext):
     def run(self):
