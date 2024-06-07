@@ -1,133 +1,65 @@
-from math import ceil, pow
-import numpy as np
-from numba import jit
-from .multistage import Multistage
-from concurrent.futures import ThreadPoolExecutor
-from .slider import Slider
+import ctypes
+import os
 
+# Load the shared library
+lib = ctypes.CDLL(os.path.abspath('build/libminpy.so'))
+
+# Define the Multistage class
+class Multistage:
+    def __init__(self, size, extras=0, radix=4):
+        lib.Multistage_new.argtypes = [ctypes.c_int, ctypes.c_int, ctypes.c_int]
+        lib.Multistage_new.restype = ctypes.c_void_p
+        self.obj = lib.Multistage_new(size, extras, radix)
+
+        self.__SIZE   = size
+        self.__EXTRAS = extras
+        self.__RADIX  = radix
+
+        lib.Multistage_get_stages.argtypes = [ctypes.c_void_p]
+        lib.Multistage_get_stages.restype = ctypes.c_int
+        self.__STAGES = lib.Multistage_get_stages(self.obj)
+
+    def clear(self):
+        lib.Multistage_clear.argtypes = [ctypes.c_void_p]
+        lib.Multistage_clear(self.obj)
+
+    def show(self):
+        lib.Multistage_show.argtypes = [ctypes.c_void_p]
+        lib.Multistage_show(self.obj)
+    
+    def __len__(self):
+        return self.__SIZE
+
+    @property
+    def stages(self):
+        return self.__STAGES
+
+    def shape(self):
+        return (self.__SIZE, self.__STAGES)
+
+# Define the Slider class
+class Slider:
+    def __init__(self, size, extras, radix):
+        lib.Slider_new.argtypes = [ctypes.c_int, ctypes.c_int, ctypes.c_int]
+        lib.Slider_new.restype = ctypes.c_void_p
+        self.obj = lib.Slider_new(size, extras, radix)
+
+    # Add more methods here
+
+# Define the Omega class
 class Omega(Multistage):
-    """Class representing a routing algorithm based on a multistage network."""
-
-    def __init__(self, size: np.uint, extras: np.uint=0, radix: np.uint=4) -> None:
-        """
-        Constructor of the class.
-
-        Args:
-            size   (np.uint): Size of the multistage network.
-            extras (np.uint, optional): Number of extra stages. Default is 0.
-            radix  (np.uint, optional): Number of switch ports. Default is 4.
-        """
+    def __init__(self, size, extras=0, radix=4):
         super().__init__(size, extras, radix)
+        lib.Omega_new.argtypes = [ctypes.c_int, ctypes.c_int, ctypes.c_int]
+        lib.Omega_new.restype = ctypes.c_void_p
+        self.obj = lib.Omega_new(size, extras, radix)
 
-        # Initialization of the sliding window and extra codes
-        self.__WINDOW      : Slider = Slider(size, extras, radix)
-        self.__EXTRA_CODES : list   = [i for i in range(ceil(pow(radix, extras)))]
+    def route(self, input, output):
+        lib.Omega_route.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
+        lib.Omega_route.restype = ctypes.c_bool
+        return lib.Omega_route(self.obj, input, output)
 
-    def route(self, input: int, output: int) -> bool:
-        """
-        Routes a message from input to output.
-
-        Args:
-            input  (int): Input index.
-            output (int): Output index.
-
-        Returns:
-            bool: True if routing is successful, False otherwise.
-        """
-        assert 0 <= input < len(self), f"Index {input} out of range."
-        assert 0 <= output < len(self), f"Index {output} out of range."
-
-        if output in self._routed:
-            return True
-
-        paths = [self.__WINDOW.concat(input, extra, output) for extra in self.__EXTRA_CODES]
-
-        with ThreadPoolExecutor() as executor:
-            results = executor.map(self.__is_path_available, paths)
-
-        for path, is_available in zip(paths, results):
-            if is_available:
-                self._routed[output] = path
-                self.__send_message(path)
-                return True
-
-        return False
-
-    def unroute(self, output: int) -> bool:
-        """
-        Unroutes a message from the output.
-
-        Args:
-            output (int): Output index.
-
-        Returns:
-            bool: True if unroute is successful, False otherwise.
-        """
-        assert 0 <= output < len(self), f"Index {output} out of range."
-
-        if output not in self._routed:
-            return False
-
-        path: int = self._routed[output]
-
-        for col in range(self.stages):
-
-            row : int = self.__WINDOW.slide(path, col + 1)
-            idx : int = row * self.stages + col
-
-            self._min[idx] = max(0, self._min[idx] - 1)
-
-            if self._min[idx] == 0:
-                self._swt[idx] = -1
-
-        del self._routed[output]
-
-        return True
-    
-    @jit
-    def __is_path_available(self, path: int) -> bool:
-        """
-        Checks if a path is available for the given path.
-
-        Args:
-            path (int): Binary Path.
-
-        Returns:
-            bool: True if the path is available, False otherwise.
-        """
-        for col in range(self.stages):
-            row = self.__WINDOW.slide(path, col + 1)
-            if not self.__is_available(path, row, col):
-                return False
-        return True
-    
-    def __is_available(self, path: int, row: int, col: int) -> bool:
-        """
-        Checks if a path is available.
-
-        Args:
-            path (int): Binary Path.
-            row  (int): Row index.
-            col  (int): Column index.
-
-        Returns:
-            bool: True if the path is available, False otherwise.
-        """
-        is_free      : bool = self._min[row * self.stages + col] == 0
-        is_multicast : bool = self._swt[row * self.stages + col] == self.__WINDOW.source(path, col + 1)
-
-        return is_free or is_multicast
-
-    def __send_message(self, path: int) -> None:
-        """
-        Sends a message through the path.
-
-        Args:
-            path (int): Binary Path.
-        """
-        for col in range(self.stages):
-
-            row: int = self.__WINDOW.slide(path, col + 1)
-
-            self._min[row * self.stages + col] += 1
-            self._swt[row * self.stages + col]  = self.__WINDOW.source(path, col)
+    def unroute(self, output):
+        lib.Omega_unroute.argtypes = [ctypes.c_void_p, ctypes.c_int]
+        lib.Omega_unroute.restype = ctypes.c_bool
+        return lib.Omega_unroute(self.obj, output)

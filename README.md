@@ -1,16 +1,14 @@
-# Minpy
+# MinPy
 
-This is a Python library for multistage network structures, sliding window operations, and routing algorithms.
+A Python library for multistage interconnection network structures
 
-## Installation
-
-You can install the library using:
+## Instalação
 
 ```sh
 pip install .
 ```
 
-or do a pip install in your notebook:
+or download it to your notebook with:
 ```
 !pip install git+https://github.com/jojobaseedoil/minpy.git
-```
+``` 
