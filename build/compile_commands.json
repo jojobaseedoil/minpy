@@ -1,0 +1,17 @@
+[
+{
+  "directory": "/home/jojobaseedoil/dev/minpy/build",
+  "command": "/usr/bin/c++ -Dminpy_EXPORTS -I/home/jojobaseedoil/dev/minpy -g -fPIC -std=gnu++11 -o CMakeFiles/minpy.dir/source/Multistage.cpp.o -c /home/jojobaseedoil/dev/minpy/source/Multistage.cpp",
+  "file": "/home/jojobaseedoil/dev/minpy/source/Multistage.cpp"
+},
+{
+  "directory": "/home/jojobaseedoil/dev/minpy/build",
+  "command": "/usr/bin/c++ -Dminpy_EXPORTS -I/home/jojobaseedoil/dev/minpy -g -fPIC -std=gnu++11 -o CMakeFiles/minpy.dir/source/Slider.cpp.o -c /home/jojobaseedoil/dev/minpy/source/Slider.cpp",
+  "file": "/home/jojobaseedoil/dev/minpy/source/Slider.cpp"
+},
+{
+  "directory": "/home/jojobaseedoil/dev/minpy/build",
+  "command": "/usr/bin/c++ -Dminpy_EXPORTS -I/home/jojobaseedoil/dev/minpy -g -fPIC -std=gnu++11 -o CMakeFiles/minpy.dir/source/Omega.cpp.o -c /home/jojobaseedoil/dev/minpy/source/Omega.cpp",
+  "file": "/home/jojobaseedoil/dev/minpy/source/Omega.cpp"
+}
+]

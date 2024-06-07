@@ -1,0 +1,3 @@
+/home/jojobaseedoil/dev/minpy/build/CMakeFiles/minpy.dir
+/home/jojobaseedoil/dev/minpy/build/CMakeFiles/edit_cache.dir
+/home/jojobaseedoil/dev/minpy/build/CMakeFiles/rebuild_cache.dir

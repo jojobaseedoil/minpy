@@ -1,0 +1,5 @@
+# ninja log v5
+0	64	1717740766145684624	CMakeFiles/minpy.dir/source/Slider.cpp.o	7523af4ee9823a5b
+0	276	1717740766357683590	CMakeFiles/minpy.dir/source/Omega.cpp.o	4451fef22eb10670
+0	434	1717740766513682828	CMakeFiles/minpy.dir/source/Multistage.cpp.o	acc78ceed34a1ac7
+434	504	1717740766585682476	libminpy.so	27ff188242531dc7
