@@ -41,5 +41,4 @@ setup(
     install_requires=[
         # Adicione aqui suas dependências, se houver
     ],
-    data_files=[('minpy', ['build/libminpy.so'])],  # Inclui o .so no pacote
 )
