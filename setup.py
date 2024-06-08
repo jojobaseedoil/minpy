@@ -28,7 +28,10 @@ setup(
     packages=find_packages(),
     ext_modules=[Extension('minpy', sources=[])],
     cmdclass={'build_ext': CMakeBuild},
-    package_data={'': ['build/libminpy.so']},  # Referência para o arquivo libminpy.so
+    include_package_data=True,  # Incluir arquivos de dados no pacote
+    package_data={
+        'minpy': ['libminpy.so'],  # Referência para o arquivo libminpy.so
+    },
     classifiers=[
         'Programming Language :: Python :: 3',
         'License :: OSI Approved :: MIT License',
@@ -36,6 +39,7 @@ setup(
     ],
     python_requires='>=3.6',
     install_requires=[
-        
+        # Adicione aqui suas dependências, se houver
     ],
+    data_files=[('minpy', ['build/libminpy.so'])],  # Inclui o .so no pacote
 )
